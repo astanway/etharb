@@ -1,0 +1,75 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" src="http://localhost:8000/papaparse.min.js"></script>
+
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+          var results = Papa.parse("http://localhost:8000/ticker.csv", {
+          	download: true,
+            dynamicTyping: true,
+            complete: function(results) {
+                var blues = [];
+                var reds = [];
+
+                results['data'].map(function(x) {
+                    if (x[1] < 1502544819.39)  {
+                        console.log("wtf")
+                        return;
+                    }
+                    if (x[0] == "BLUES") {
+                        var d = new Date(x[1] * 1000);
+                        var n = parseFloat(x[3].split(" $")[1]);
+                        blues.push([d, n])
+                    }
+                    if (x[0] == "REDS") {
+                        var d = new Date(x[1] * 1000);
+                        var n = parseFloat(x[3].split(" $")[1]);
+                        reds.push([d, n])
+                    }
+                })
+                
+                for (index in reds) {
+                    blues[index].push(reds[index][1])
+                }
+                
+                var data = new google.visualization.DataTable();
+                data.addColumn('datetime', 'timestamp');
+                data.addColumn('number', 'blue_profit')
+                data.addColumn('number', 'red_profit')
+                data.addRows(blues)
+                                
+                var options = {
+                    explorer: { actions: ['dragToZoom', 'rightClickToReset'], axis: "horizontal", keepInBounds: true, zoomDelta: 1.1},
+                    gridlines: {
+                                count: -1,
+                                units: {
+                                  days: {format: ['MMM dd']},
+                                  hours: {format: ['HH:mm', 'ha']},
+                                }
+                              },
+                  minorGridlines: {
+                          count: 11,
+                              units: {
+                                hours: {format: ['hh:mm:ss a', 'ha']},
+                                minutes: {format: ['HH:mm a Z', ':mm']}
+                              }
+                            }
+                }
+
+                  var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+                  chart.draw(data, options);
+                  
+              }
+          });
+      }
+    </script>
+  </head>
+  <body>
+    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+    <div id="chart_div_reds" style="width: 900px; height: 500px;"></div>
+  </body>
+</html>
