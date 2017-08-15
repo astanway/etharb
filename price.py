@@ -83,6 +83,26 @@ while True:
         eth = eth - .01
         btc = most_recent_gemini_eth_bid * eth * (1 - .0015) # As a maker
         gain = btc - btcAmt
+        
+        # alias(
+        #      scale(
+        #         offset(
+        #             scale(
+        #                 multiplySeries(*.most_recent_gemini_eth_bid,
+        #                     offset(
+        #                         divideSeries(
+        #                             scale(
+        #                                 scale(
+        #                                     timeShift(*.most_recent_korea_btc_bid, "-5min"), 2)
+        #                             , 0.99975),
+        #                             scale(timeShift(*.most_recent_korea_eth_ask, "-5min"), 0.99975)
+        #                     ), -0.01)
+        #                 ),
+        #             0.9985),
+        #          -2),
+        #         4050
+        #      ), "Buy Korea, sell US"
+        # )
 
         with open("ticker.csv", "a") as f:
             output = "BLUES, %s, %s, $%s" % (timestamp, gain, gain * btcPrice)
@@ -109,6 +129,21 @@ while True:
             f.write(output)
             f.write('\n')
             print output
+            
+        # alias(
+        #     scale(
+        #        offset(
+        #            offset(
+        #                divideSeries(
+        #                        multiplySeries(
+        #                                scale(scale(invert(timeShift(*.most_recent_gemini_eth_ask, "-5min")), 2), 0.9985),
+        #                                scale(*.most_recent_korea_eth_bid, 0.99975)
+        #                        ), scale(*.most_recent_korea_btc_ask, 0.99975)
+        #                ), -0.0005),
+        #             -2),
+        #        4050
+        #     ), "Buy US, Sell Korea"
+        # )
             
         cmd = "echo \"%s %s %s\" | nc 127.0.0.1 2003" % ("local.REDSbtc", gain, timestamp)
         ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
